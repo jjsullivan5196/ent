@@ -5,6 +5,7 @@
 #include <string>
 #include <typeinfo>
 #include <typeindex>
+#include <memory>
 #include <map>
 #include "util.h"
 
@@ -21,13 +22,13 @@ namespace ent
 	{
 		public:
 		Entity();
+		~Entity();
 		
 		template<class T> T* addComponent();
 		template<class T> T* getComponent();
 		template<class T> bool removeComponent();
 
-		template<class T> bool checkComponents();
-		template<class T, class... Args> bool checkComponents();
+		template<class... Types> bool checkComponents();
 
 		bool Enabled() const;
 		bool Enabled(bool toggle);
@@ -35,7 +36,7 @@ namespace ent
 		std::string Tag(std::string t);
 
 		private:
-		std::map<std::type_index, Component*> components;
+		std::map<std::type_index, std::shared_ptr<Component>> components;
 		std::string tag;
 		bool enabled;
 	};
@@ -43,11 +44,11 @@ namespace ent
 	template<class T> T* Entity::addComponent()
 	{
 		std::assert_base<Component, T>();
-		const std::type_index key(typeid(T));
+		const auto key = std::indexof_type<T>;
 		if(!components.count(key))
 		{
 			T* ncomponent = new T();
-			components[key] = (Component*)ncomponent;
+			components[key] = std::shared_ptr<Component>((Component*)ncomponent);
 			return ncomponent;
 		}
 		return nullptr;
@@ -55,39 +56,34 @@ namespace ent
 	
 	template<class T> T* Entity::getComponent()
 	{
-		std::assert_base<Component, T>();
-		const std::type_index key(typeid(T));
+		const auto key = std::indexof_type<T>;
 		auto it = components.find(key);
 		if(it != components.end())
 		{
-			return (T*)it->second;
+			return (T*)it->second.get();
 		}
 		return nullptr;
 	}
 
 	template<class T> bool Entity::removeComponent()
 	{
-		std::assert_base<Component, T>();
-		const std::type_index key(typeid(T));
+		const auto key = std::indexof_type<T>;
 		auto it = components.find(key);
 		if(it != components.end())
 		{
-			delete (T*)it->second;
 			components.erase(key);
 			return true;
 		}
 		return false;
 	}
 
-	template<class T> bool Entity::checkComponents()
+	template<class... Types> bool Entity::checkComponents()
 	{
-		std::assert_base<Component, T>();
-		const std::type_index key(typeid(T));
-		return (bool)components.count(key);
-	}
-	template<class T, class... Args> bool Entity::checkComponents()
-	{
-		return checkComponents<Args...>() && checkComponents<T>();
+		for(auto& typeidx : std::type_vector<Types...>)
+		{
+			if(!components.count(typeidx)) return false;
+		}
+		return true;
 	}
 }
 
