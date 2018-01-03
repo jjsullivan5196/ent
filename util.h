@@ -34,6 +34,27 @@ namespace std
 	{
 		apply_if(collection.begin(), collection.end(), filter, f);
 	}
+
+	struct generic_ptr
+	{
+		virtual void* get() { return nullptr; }
+		virtual ~generic_ptr() {}
+		template <class T> generic_ptr(T* ptr);
+		template <class T> operator T*() { return (T*)get(); }
+	};
+
+	template <class T>
+	generic_ptr::generic_ptr(T* ptr)
+	{
+		struct container : generic_ptr
+		{
+			T* ptr;
+			void* get() override { return (void*)ptr; }
+			~container() override { delete ptr; }
+		} ptr_container{ptr};
+
+		*this = (generic_ptr*)ptr_container;
+	}	
 }
 
 #endif /* __UTIL */

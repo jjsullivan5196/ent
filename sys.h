@@ -13,7 +13,7 @@
 
 namespace ent
 {
-	typedef std::function<int(const float, std::vector<Entity>&)> System;
+	using System = std::function<int(const float, std::vector<Entity>&)>;
 
 	int do_nothing(const float dt, std::vector<Entity>& ents)
 	{
