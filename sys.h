@@ -9,13 +9,12 @@
 #include <cmath>
 #include <thread>
 #include "ent.h"
-#include "util.h"
 
 namespace ent
 {
-	using System = std::function<int(const float, std::vector<Entity>&)>;
+	using system = std::function<int(const float, std::vector<entity>&)>;
 
-	int do_nothing(const float dt, std::vector<Entity>& ents)
+	int do_nothing(const float dt, std::vector<entity>& ents)
 	{
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 		return 0;
@@ -24,7 +23,7 @@ namespace ent
 	using hrclock = std::chrono::high_resolution_clock;
 	using hrpoint = hrclock::time_point;
 	
-	int runGame(std::vector<System> Systems = {&do_nothing}, std::vector<Entity> Entities = {}, const uint ticks = 40)
+	int runGame(std::vector<system> systems = {&do_nothing}, std::vector<entity> entities = {}, const uint ticks = 40)
 	{
 		hrpoint lasttick = hrclock::now();
 
@@ -34,9 +33,9 @@ namespace ent
 			double deltaTime = std::chrono::duration_cast<std::chrono::microseconds>(hrclock::now() - lasttick).count() * std::pow(10.0, -6);
 			lasttick = hrclock::now();
 
-			for(System& sys: Systems)
+			for(system& sys: systems)
 			{
-				int r = sys(deltaTime, Entities);
+				int r = sys(deltaTime, entities);
 				if(r == -1)
 				{
 					std::printf("Exiting...\n");

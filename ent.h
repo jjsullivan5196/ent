@@ -1,71 +1,62 @@
 #ifndef __ENT
 #define __ENT
 
+#include <map>
 #include <vector>
 #include <string>
+#include <memory>
 #include <typeinfo>
 #include <typeindex>
-#include <memory>
-#include <map>
+#include <boost/any.hpp>
 #include "util.h"
 
 namespace ent
 {
-	class Component
+	using comp_handle = std::shared_ptr<boost::any>;
+
+	class entity final
 	{
 		public:
-		const std::string name;
-		virtual ~Component() {}
-	};
+		template<class T> T* add();
+		template<class T> T* get();
+		template<class T> bool remove();
+		template<class... Types> bool check();
 
-	class Entity final
-	{
-		public:
-		Entity();
-		~Entity();
-		
-		template<class T> T* addComponent();
-		template<class T> T* getComponent();
-		template<class T> bool removeComponent();
-
-		template<class... Types> bool checkComponents();
-
-		bool Enabled() const;
-		bool Enabled(bool toggle);
-		std::string Tag() const;
-		std::string Tag(std::string t);
+		bool enabled() const { return enable; }
+		bool enabled(bool toggle) { return enable = toggle; }
+		std::string tag() const { return tagname; }
+		std::string tag(std::string t) { return tagname = t; }
 
 		private:
-		std::map<std::type_index, std::shared_ptr<Component>> components;
-		std::string tag;
-		bool enabled;
+		std::map<std::type_index, comp_handle> components;
+		std::string tagname = "";
+		bool enable = true;
 	};
 
-	template<class T> T* Entity::addComponent()
+	template<class T> T* entity::add()
 	{
-		std::assert_base<Component, T>();
 		const auto key = std::indexof_type<T>;
 		if(!components.count(key))
 		{
-			T* ncomponent = new T();
-			components[key] = std::shared_ptr<Component>((Component*)ncomponent);
-			return ncomponent;
+			auto& comp = components[key];
+			comp = comp_handle(new boost::any(T())); 
+			return boost::any_cast<T>(comp.get());
 		}
 		return nullptr;
 	}
 	
-	template<class T> T* Entity::getComponent()
+	template<class T> T* entity::get()
 	{
 		const auto key = std::indexof_type<T>;
 		auto it = components.find(key);
 		if(it != components.end())
 		{
-			return (T*)it->second.get();
+			return boost::any_cast<T>(it->second.get());
 		}
 		return nullptr;
 	}
 
-	template<class T> bool Entity::removeComponent()
+	template<class T> bool entity::remove()
 	{
 		const auto key = std::indexof_type<T>;
 		auto it = components.find(key);
@@ -77,13 +68,22 @@ namespace ent
 		return false;
 	}
 
-	template<class... Types> bool Entity::checkComponents()
+	template<class... Types> bool entity::check()
 	{
 		for(auto& typeidx : std::type_vector<Types...>)
 		{
 			if(!components.count(typeidx)) return false;
 		}
 		return true;
+	}
+
+	template<class... Types, class Func> 
+	void apply_ents(std::vector<entity>& ents, const Func& f)
+	{
+		for(entity& e : ents)
+		{
+			if(e.check<Types...>()) f(e, *e.get<Types>()...);
+		}
 	}
 }
 
