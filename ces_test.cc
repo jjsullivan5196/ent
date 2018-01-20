@@ -8,7 +8,7 @@ struct comp1 {};
 struct comp2 {};
 struct comp3 {};
 
-using test_world = world<10, type_list<comp1, comp2, comp3>>;
+using test_world = world<10, comp1, comp2, comp3>;
 
 int main()
 {

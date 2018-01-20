@@ -8,7 +8,7 @@
 
 namespace ces
 {
-	template<std::size_t NEntities, template <class... Components> class >
+	template<std::size_t NEntities, class... Components>
 	struct world
 	{
 		//Useful declarations
