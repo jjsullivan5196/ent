@@ -40,6 +40,5 @@ void make_ents(world_t::mask_vec_t& entities, world_t::store_t& components)
 int main()
 {
 	world_t test;
-	test.init(make_ents);
-	test.run(sys1, sys2);
+	test.run(make_ents, sys1, sys2);
 }
