@@ -1,3 +1,10 @@
-test: ces_test.cc ces.h mpl.h
-	clang++ -std=c++17 ces_test.cc -o ces_test
-	./ces_test
+.DEFAULT_GOAL := test
+CXX := clang++
+CXXFLAGS := -std=c++17
+
+ces: ces_test.cc ces.h mpl.h
+	$(CXX) $(CXXFLAGS) ces_test.cc -o ces
+
+test: ces
+	clear
+	./ces

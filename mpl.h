@@ -5,9 +5,8 @@
 
 namespace mpl
 {
-	template <class... Args>
-	struct type_list {};
-
+	// Thanks to Barry at stackoverflow
+	// https://stackoverflow.com/a/30736376
 	template <class... R>
 	struct index_of_t
 	{
