@@ -8,3 +8,9 @@ ces: ces_test.cc ces.h mpl.h
 test: ces
 	clear
 	./ces
+
+test_index: test_index.cc
+	clear
+	$(CXX) $(CXXFLAGS) test_index.cc -o test_index
+	clear
+	./test_index

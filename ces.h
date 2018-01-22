@@ -30,7 +30,7 @@ namespace ces
 		using mask_vec_t = std::array<mask_t, Settings::NEntities>;
 
 		template<class T>
-		constexpr static mask_t index_offset = mpl::index_of_v<T, Components...>;
+		constexpr static mask_t index_offset = mpl::index_of_t<T, Components...>;
 
 		template<class... Mask>
 		constexpr static mask_t bitmask_f()
@@ -52,7 +52,8 @@ namespace ces
 			std::function<bool(float, ComponentMask&...)> func;
 
 			bool run(float& dt, world_type::pack_t& ctuple) 
-			{ 
+			{
+				((mpl::index_of_t<ComponentMask*, world_type::pack_t>), ...);
 				return func(dt, *std::get<world_type::index_offset<ComponentMask>>(ctuple)...); 
 			}
 		};
