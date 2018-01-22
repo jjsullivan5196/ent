@@ -53,7 +53,6 @@ namespace ces
 
 			bool run(float& dt, world_type::pack_t& ctuple) 
 			{
-				((mpl::index_of_t<ComponentMask*, world_type::pack_t>), ...);
 				return func(dt, *std::get<world_type::index_offset<ComponentMask>>(ctuple)...); 
 			}
 		};
