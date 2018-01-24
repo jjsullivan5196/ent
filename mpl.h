@@ -1,5 +1,6 @@
 #pragma once
 #include <array>
+#include <bitset>
 #include <tuple>
 #include <type_traits>
 #include <utility>
@@ -12,26 +13,12 @@ namespace mpl {
 		};
 	} // namespace impl
 
-	namespace impl {
-		template <class... R>
-		struct is_same_any : std::false_type {};
-
-		template <class T, class... R>
-		struct is_same_any<T, T, R...> : std::true_type {};
-
-		template <class T, class F, class... R>
-		struct is_same_any<T, F, R...> : is_same_any<T, R...> {};
-	} // namespace impl
-
-	template <class T, class... R>
-	constexpr bool is_same_any_v = impl::is_same_any<T, R...>::value;
-
 	namespace impl { // Index in template parameter pack
 		// Generic Pack Version
 		// Thanks to Barry
 		// https://stackoverflow.com/a/30736376
 		template <class... R>
-		struct index_of : not_in_pack<R...> {};
+		struct index_of : std::false_type {};
 
 		template <class T, class... R>
 		struct index_of<T, T, R...>
@@ -44,13 +31,21 @@ namespace mpl {
 		// Generic Aggregate specialization (Holy shit this actually works)
 		// Based on tuple solution by Casey
 		// https://stackoverflow.com/a/18063608
-		template <class T, class... R, template <class... Args> class Aggregate>
+		template <class T, template <class... Args> class Aggregate, class... R>
 		struct index_of<T, Aggregate<R...>> : index_of<T, R...> {};
+
+		template <class... R>
+		struct index_of_slice : std::false_type {};
+
+		template <
+			template <class... Args> class Aggregate,
+			template <class... Args> class Slice,
+			class... TypeList, class... ArgTypes>
+		struct index_of_slice<Aggregate<TypeList...>, Slice<ArgTypes...>>
+			: std::index_sequence<index_of<ArgTypes, TypeList...>::value...> {};
+
 	} // namespace impl
 
 	template <class T, class... R>
 	constexpr std::size_t index_of_v = impl::index_of<T, R...>::value;
-
-	template <size_t N, class... Ts>
-	using component_store = std::tuple<std::array<Ts, N>...>;
 } // namespace mpl

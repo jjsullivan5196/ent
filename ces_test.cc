@@ -8,7 +8,7 @@ struct comp1 {};
 struct comp2 {};
 struct comp3 {};
 
-using world_t = world<settings<60>, comp1, comp2, comp3>;
+using world_t = world<10, comp1, comp2, comp3>;
 
 bool sysone(float dt, comp1& component) {
 	static uint32_t ticks = 0;
@@ -24,14 +24,14 @@ bool systwo(float dt, comp1&, comp3& component) {
 	return true;
 }
 
-world_t::delegate<comp1> sys1{sysone};
-world_t::delegate<comp1, comp3> sys2{systwo};
+world_t::system<comp1> sys1{sysone};
+world_t::system<comp1, comp3> sys2{systwo};
 
 void make_ents(world_t::mask_vec_t& entities, world_t::store_t& components) {
 	printf("Initializing...\n");
-	entities.fill(0 | 1 << 0 | 1 << 1 | 1 << 3);
-	entities[4] &= ~(1 << 3);
-	entities[6] &= ~(1 << 0);
+	entities.fill(world_t::create_mask<comp1, comp3>(true));
+	entities[4].set(1, 3);
+	entities[6].set(0);
 }
 
 int main() {

@@ -14,3 +14,9 @@ test_index: test_index.cc
 	$(CXX) $(CXXFLAGS) test_index.cc -o test_index
 	clear
 	./test_index
+
+test_mpl: test_mpl.cc mpl.h
+	clear
+	$(CXX) $(CXXFLAGS) test_mpl.cc -o test_mpl
+	clear
+	./test_mpl
