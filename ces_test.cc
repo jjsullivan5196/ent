@@ -1,4 +1,5 @@
 #include "ces.h"
+#include "mpl.h"
 #include <cstdio>
 
 using namespace std;
@@ -10,31 +11,40 @@ struct comp3 {};
 
 using world_t = world<10, comp1, comp2, comp3>;
 
-bool sysone(float dt, comp1& component) {
-	static uint32_t ticks = 0;
+struct sysone : world_t::system<sysone, comp1> {
+	void init(world_t::mask_vec_t& ents, world_t::store_t&) override {
+		printf("Initializing...\n");
+		ents.fill(world_t::create_mask<comp1, comp3>(true));
+	}
 
-	printf("I take a comp1! Ticks: %d\n", ticks);
-	ticks++;
+	bool update(float dt, comp1&) {
+		static uint32_t ticks = 0;
+		printf("I take a comp1! Ticks: %d\n", ticks);
+		ticks++;
 
-	return ticks < 2;
-}
+		return ticks < 2;
+	}
+};
 
-bool systwo(float dt, comp1&, comp3& component) {
-	printf("I take a comp3 and comp1!\n");
-	return true;
-}
+struct systwo : world_t::system<systwo, comp1, comp3> {
+	bool update(float dt, comp1&, comp3&) {
+		printf("I take a comp3 and comp1!\n");
+		return true;
+	}
+};
 
-world_t::system<comp1> sys1{sysone};
-world_t::system<comp1, comp3> sys2{systwo};
+struct systhree : world_t::system<systhree, comp3> {
+	bool update(float dt, comp3&) {
+		printf("I take a comp3!\n");
+		return true;
+	}
 
-void make_ents(world_t::mask_vec_t& entities, world_t::store_t& components) {
-	printf("Initializing...\n");
-	entities.fill(world_t::create_mask<comp1, comp3>(true));
-	entities[4].set(1, 3);
-	entities[6].set(0);
-}
+	void finalize(world_t::mask_vec_t&, world_t::store_t&) override {
+		printf("Exiting...\n");
+	}
+};
 
 int main() {
 	world_t test;
-	test.run(make_ents, sys1, sys2);
+	test.run(sysone(), systwo(), systhree());
 }

@@ -4,6 +4,8 @@
 #include <chrono>
 #include <functional>
 #include <tuple>
+#include <type_traits>
+#include <utility>
 
 namespace ces {
 	using hrclock = std::chrono::high_resolution_clock;
@@ -26,21 +28,21 @@ namespace ces {
 			return mask;
 		}
 
-		template <class... Mask>
+		template <class Derived, class... Mask>
 		struct system {
-			using world_t = world<NEntities, Components...>;
-			std::function<bool(float, Mask&...)> func;
-			mask_t use_mask = world_t::create_mask<Mask...>(true);
+			mask_t use_mask = create_mask<Mask...>(true);
+			virtual void init(mask_vec_t& entities, store_t& components) {}
+			virtual void finalize(mask_vec_t& entities, store_t& components) {}
 
 			bool run(float dt, pack_t components) {
-				return func(dt, *std::get<mpl::index_of_v<Mask, Components...>>(components)...);
+				return static_cast<Derived*>(this)->update(dt, *std::get<mpl::index_of_v<Mask, Components...>>(components)...);
 			}
 		};
 
-		template <class Init, class... System>
-		void run(Init&& init, System&... sys) {
+		template <class... System>
+		void run(System&&... sys) {
 			static_assert(sizeof...(System) > 0, "You need at least one system");
-			init(entities, components);
+			((sys.init(entities, components)), ...);
 
 			float deltaTime = 0.0;
 			bool result = true;
@@ -55,6 +57,8 @@ namespace ces {
 					((result &= ((sys.use_mask & mask) == sys.use_mask ? sys.run(deltaTime, pack_t(&std::get<mpl::index_of_v<Components, Components...>>(components)[i]...)) : true)), ...);
 				}
 			}
+
+			((sys.finalize(entities, components)), ...);
 		}
 
 	  private:

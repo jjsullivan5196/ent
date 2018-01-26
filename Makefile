@@ -20,3 +20,9 @@ test_mpl: test_mpl.cc mpl.h
 	$(CXX) $(CXXFLAGS) test_mpl.cc -o test_mpl
 	clear
 	./test_mpl
+
+test_op: test_op.cc
+	clear
+	$(CXX) $(CXXFLAGS) test_op.cc -o test_op
+	clear
+	./test_op

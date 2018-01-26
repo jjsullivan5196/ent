@@ -3,6 +3,7 @@
 #include <bitset>
 #include <tuple>
 #include <type_traits>
+#include <functional>
 #include <utility>
 
 namespace mpl {
